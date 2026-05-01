@@ -145,3 +145,11 @@ NanHacksonS2/
 |-----|------|------|
 | v1.1 | 2026-05-01 | 新增三种热量收集方式（压缩机式、发热片贴附式、风冷+压缩协同） |
 | v1.0 | 2026-05-01 | 初始版本，完成核心需求定义 |
+
+## 相关文档
+
+| 文档 | 说明 |
+|-----|------|
+| [doc/prd/waste-heat-recovery-platform-prd-v1.1.md](doc/prd/waste-heat-recovery-platform-prd-v1.1.md) | 完整需求文档 |
+| [doc/quantitative-analysis.md](doc/quantitative-analysis.md) | 定量分析报告（面向评委/观众） |
+| [doc/ui-design-spec.md](doc/ui-design-spec.md) | UI/UX设计规范 |
