@@ -1,233 +1,319 @@
-import React, { useState } from 'react';
-import { Box, Grid, Paper, Typography, ToggleButton, ToggleButtonGroup, TextField, Button, Chip } from '@mui/material';
-import { TemperatureHeatMap, TemperatureTrendChart, StatusBadge } from '../components';
-import { generateMockBatteryUnits } from '../data/mockData';
-import { colors } from '../theme/theme';
+import { useState, useMemo } from "react";
+import type { BatteryUnit } from "../types";
+import {
+  Search,
+  Filter,
+  RotateCcw,
+  Thermometer,
+  AlertTriangle,
+} from "lucide-react";
+import { cn } from "../lib/utils";
+import { useAppContext } from "../contexts/AppContext";
+import { usePolling } from "../hooks/usePolling";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { toast } from "sonner";
 
-export const Temperature: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'heatmap'>('grid');
-  const [selectedRegion, setSelectedRegion] = useState<string>('all');
-  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-  const batteryUnits = generateMockBatteryUnits();
+export function TemperatureMonitoring() {
+  const {
+    data: batteries,
+    setData: setBatteries,
+    refetch,
+  } = usePolling<BatteryUnit[]>("/api/batteries", 3000, []);
+  const { t } = useAppContext();
+  const [selectedBatId, setSelectedBatId] = useState<string | null>(null);
+  const [zoneFilter, setZoneFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const regions = ['all', 'A区', 'B区', 'C区', 'D区'];
+  const filteredBatteries = batteries.filter((bat) => {
+    // Generate derived zone based on ID
+    const seed = bat.id
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const batZone = seed % 3 === 0 ? "A" : seed % 3 === 1 ? "B" : "C";
 
-  const filteredUnits = selectedRegion === 'all'
-    ? batteryUnits
-    : batteryUnits.filter(u => u.region === selectedRegion);
+    if (zoneFilter !== "All" && batZone !== zoneFilter) return false;
+    if (statusFilter === "Normal" && bat.temperatureC > 35) return false;
+    if (statusFilter === "Warning" && bat.temperatureC <= 35) return false;
+    if (
+      searchQuery &&
+      !bat.id.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+      return false;
+    return true;
+  });
 
-  const stats = {
-    normal: filteredUnits.filter(u => u.status === 'normal').length,
-    warning: filteredUnits.filter(u => u.status === 'warning').length,
-    critical: filteredUnits.filter(u => u.status === 'critical').length,
+  const selectedBat = batteries.find((b) => b.id === selectedBatId) || null;
+
+  const mockHistoryData = useMemo(() => {
+    if (!selectedBat) return [];
+    // Generate a consistent yet unique curve per battery using its ID string
+    const seed = selectedBat.id
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    // Use a fixed base temp derived from seed so it doesn't jump every 3s polling update
+    const baseTemp = 20 + (seed % 15);
+
+    return Array.from({ length: 24 }).map((_, i) => {
+      const noise = Math.sin(i * 0.5 + seed) * 3 + Math.cos(i * 1.2) * 2;
+      return {
+        time: `${i}:00`,
+        temp: Number(Math.max(10, baseTemp - 5 + noise).toFixed(1)),
+      };
+    });
+  }, [selectedBat?.id]);
+
+  const handleControl = async (action: "heat" | "cool" | "adjust_target") => {
+    if (!selectedBatId) return;
+
+    if (action === "adjust_target") {
+      toast(t("Adjust Target Mode"), {
+        description: t("Target adjustment via controls enabled."),
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/batteries/${selectedBatId}/control`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        const updatedBat = await res.json();
+        setBatteries((prev) =>
+          prev.map((b) => (b.id === updatedBat.id ? updatedBat : b)),
+        );
+        toast.success(t(`Action executed successfully`) + ` (${action})`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(t("Failed to execute control action"));
+    }
   };
 
-  const selectedUnitData = batteryUnits.find(u => u.id === selectedUnit);
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success(t("Matrix data refreshed"));
+  };
+
+  const getStatusColor = (temp: number) => {
+    if (temp < 15)
+      return "border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)]";
+    if (temp <= 25)
+      return "border-emerald-400/30 bg-emerald-400/10 text-emerald-400";
+    if (temp <= 35) return "border-amber-400/30 bg-amber-400/10 text-amber-400";
+    return "border-red-400/30 bg-red-400/10 text-red-400 font-bold";
+  };
+
+  const getStatusText = (temp: number) => {
+    if (temp < 15) return t("Low");
+    if (temp <= 25) return t("Normal");
+    if (temp <= 35) return t("High");
+    return t("Warning");
+  };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h2">
-          温度监控
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_, v) => v && setViewMode(v)}
-            size="small"
-          >
-            <ToggleButton value="grid">网格视图</ToggleButton>
-            <ToggleButton value="heatmap">云图视图</ToggleButton>
-          </ToggleButtonGroup>
-          <Button variant="outlined" size="small">刷新</Button>
-        </Box>
-      </Box>
-
-      {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="caption" sx={{ color: colors.textSecondary, mb: 0.5, display: 'block' }}>
-              区域筛选
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {regions.map(region => (
-                <Chip
-                  key={region}
-                  label={region === 'all' ? '全部' : region}
-                  onClick={() => setSelectedRegion(region)}
-                  variant={selectedRegion === region ? 'filled' : 'outlined'}
-                  color={selectedRegion === region ? 'primary' : 'default'}
-                  size="small"
-                />
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ ml: 'auto', display: 'flex', gap: 2 }}>
-            <TextField
-              placeholder="搜索电池单元..."
-              size="small"
-              variant="outlined"
-              sx={{ width: 200 }}
+    <div className="p-6 lg:p-8 flex flex-col gap-6 mx-auto w-full max-w-[1440px]">
+      {/* Controls */}
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-3 py-1.5 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-base)]">
+            <span className="text-sm font-medium text-[var(--text-secondary)]">
+              {t("Zone")}
+            </span>
+            <select
+              value={zoneFilter}
+              onChange={(e) => setZoneFilter(e.target.value)}
+              className="bg-transparent text-sm font-semibold text-[var(--text-primary)] outline-none pr-4"
+            >
+              <option value="All">{t("All Zones")}</option>
+              <option value="A">{t("Zone A")}</option>
+              <option value="B">{t("Zone B")}</option>
+              <option value="C">{t("Zone C")}</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-base)]">
+            <span className="text-sm font-medium text-[var(--text-secondary)]">
+              {t("Status")}
+            </span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent text-sm font-semibold text-[var(--text-primary)] outline-none pr-4"
+            >
+              <option value="All">{t("All Statuses")}</option>
+              <option value="Normal">{t("Normal")}</option>
+              <option value="Warning">{t("Warning")}</option>
+            </select>
+          </div>
+          <div className="relative">
+            <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search ID..."
+              className="pl-9 pr-4 py-1.5 border border-[var(--border-subtle)] rounded-lg text-sm outline-none focus:border-[var(--accent-primary)] w-64 bg-[var(--bg-base)] transition-colors"
             />
-          </Box>
-        </Box>
+          </div>
+        </div>
+        <button
+          onClick={handleRefresh}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--border-subtle)] transition-colors text-sm font-semibold"
+        >
+          <RotateCcw className="w-4 h-4" /> {t("Refresh")}
+        </button>
+      </div>
 
-        <Box sx={{ display: 'flex', gap: 3, mt: 2, flexWrap: 'wrap' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: colors.success }} />
-            <Typography variant="body2">正常: {stats.normal}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: colors.warning }} />
-            <Typography variant="body2">告警: {stats.warning}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: colors.error }} />
-            <Typography variant="body2" sx={{ color: colors.error }}>严重: {stats.critical}</Typography>
-          </Box>
-        </Box>
-      </Paper>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+        {/* Battery List */}
+        <div className="xl:col-span-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+            <h3 className="font-semibold text-[var(--text-primary)]">
+              {t("Realtime Thermal Monitor")}
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              {filteredBatteries.map((bat) => (
+                <div
+                  key={bat.id}
+                  onClick={() => setSelectedBatId(bat.id)}
+                  className={cn(
+                    "border rounded-xl p-3 flex flex-col gap-2 cursor-pointer transition-all hover:scale-105 hover:shadow-md",
+                    getStatusColor(bat.temperatureC),
+                    selectedBatId === bat.id &&
+                      "ring-2 ring-indigo-500 ring-offset-2",
+                  )}
+                >
+                  <div className="font-mono font-bold text-xs uppercase tracking-wider">
+                    {bat.id}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xl font-bold tracking-tight">
+                      {bat.temperatureC.toFixed(1)}°C
+                    </span>
+                    <span className="text-xs font-medium opacity-80">
+                      {Math.round(bat.soc)}% SOC
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs font-semibold px-2 border rounded-full uppercase bg-[var(--bg-base)]/50">
+                      {getStatusText(bat.temperatureC)}
+                    </span>
+                    {bat.temperatureC > 35 && (
+                      <AlertTriangle className="w-3 h-3" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-      <Grid container spacing={3}>
-        {/* Main Content */}
-        <Grid item xs={12} lg={8}>
-          {viewMode === 'grid' ? (
-            <Paper sx={{ p: 2 }}>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                  gap: 1.5,
-                }}
-              >
-                {filteredUnits.map((unit) => {
-                  const bgColor = unit.status === 'normal' ? colors.success
-                    : unit.status === 'warning' ? colors.warning
-                    : colors.error;
-
-                  return (
-                    <Paper
-                      key={unit.id}
-                      onClick={() => setSelectedUnit(unit.id)}
-                      sx={{
-                        p: 2,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        bgcolor: `${bgColor}15`,
-                        border: `2px solid ${selectedUnit === unit.id ? colors.primary : bgColor}`,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          transform: 'scale(1.02)',
-                          boxShadow: 2,
-                        },
-                      }}
+        {/* Selected Battery Detail Pane */}
+        {selectedBat ? (
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden sticky top-24">
+            <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-base)]">
+              <h3 className="font-semibold text-[var(--text-primary)]">
+                {t("Cell Details")} / {selectedBat.id}
+              </h3>
+              <Thermometer className="w-5 h-5 text-[var(--text-muted)]" />
+            </div>
+            <div className="p-6 flex flex-col gap-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-sm font-semibold tracking-wide text-[var(--text-muted)] mb-1">
+                    {t("Current Temp")}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "text-4xl font-bold tracking-tighter",
+                        selectedBat.temperatureC > 35
+                          ? "text-red-400"
+                          : "text-[var(--text-primary)]",
+                      )}
                     >
-                      <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                        {unit.id}
-                      </Typography>
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          fontFamily: '"Roboto Mono", monospace',
-                          color: bgColor,
-                          my: 0.5,
-                        }}
-                      >
-                        {unit.temperature}°C
-                      </Typography>
-                      <StatusBadge
-                        status={unit.status}
-                        label={unit.status === 'normal' ? '正常' : unit.status === 'warning' ? '偏低' : '告警'}
-                      />
-                    </Paper>
-                  );
-                })}
-              </Box>
-            </Paper>
-          ) : (
-            <Paper sx={{ p: 2 }}>
-              <TemperatureHeatMap />
-            </Paper>
-          )}
-        </Grid>
+                      {selectedBat.temperatureC.toFixed(1)}°C
+                    </span>
+                    {selectedBat.temperatureC > 35 && (
+                      <span className="flex items-center gap-1 text-xs font-bold text-red-400 bg-red-900/30 px-2 py-1 rounded">
+                        <AlertTriangle className="w-3 h-3" />{" "}
+                        {t("High Temp Alert")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold tracking-wide text-[var(--text-muted)] mb-1">
+                    {t("Target Temp")}
+                  </div>
 
-        {/* Sidebar */}
-        <Grid item xs={12} lg={4}>
-          {/* Selected Unit Details */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              电池详情
-            </Typography>
-            {selectedUnitData ? (
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="body1">
-                    {selectedUnitData.id}
-                  </Typography>
-                  <StatusBadge status={selectedUnitData.status} />
-                </Box>
+                  <div className="text-xl font-bold text-[var(--text-secondary)]">
+                    20°C{" "}
+                    <span className="text-sm text-[var(--text-muted)] font-medium">
+                      ±2°C
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                      当前温度
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                      {selectedUnitData.temperature}°C
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                      目标温度
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                      {selectedUnitData.targetTemp}°C
-                    </Typography>
-                  </Grid>
-                </Grid>
+              <div className="h-48 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={mockHistoryData}>
+                    <XAxis dataKey="time" hide />
+                    <YAxis domain={["dataMin - 5", "dataMax + 5"]} hide />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="temp"
+                      stroke="#4f46e5"
+                      strokeWidth={3}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
 
-                <Box sx={{ mt: 2, mb: 2 }}>
-                  <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                    SOC: {selectedUnitData.soc}%
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  <Button variant="contained" size="small" color="success">
-                    开启供暖
-                  </Button>
-                  <Button variant="outlined" size="small" color="error">
-                    开启制冷
-                  </Button>
-                  <Button variant="outlined" size="small">
-                    调整目标
-                  </Button>
-                  <Button variant="text" size="small">
-                    查看历史
-                  </Button>
-                </Box>
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ color: colors.textSecondary }}>
-                点击左侧电池单元查看详情
-              </Typography>
-            )}
-          </Paper>
-
-          {/* Temperature Trend for selected unit */}
-          {selectedUnitData && (
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                温度曲线
-              </Typography>
-              <TemperatureTrendChart height={200} />
-            </Paper>
-          )}
-        </Grid>
-      </Grid>
-    </Box>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button
+                  onClick={() => handleControl("heat")}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors w-full"
+                >
+                  {t("Enable Heating")}
+                </button>
+                <button
+                  onClick={() => handleControl("cool")}
+                  className="bg-sky-500 hover:bg-sky-600 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors w-full"
+                >
+                  {t("Enable Cooling")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-[var(--bg-card)] border text-center border-[var(--border-subtle)] border-dashed rounded-xl p-12 flex flex-col items-center justify-center text-[var(--text-muted)] h-[600px] sticky top-24">
+            <Thermometer className="w-12 h-12 mb-4 text-[var(--text-muted)]/30" />
+            <p className="font-medium">{t("Select a battery cell")}</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
-};
+}

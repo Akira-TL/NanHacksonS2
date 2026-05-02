@@ -1,267 +1,172 @@
-import React from 'react';
-import { Box, Grid, Paper, Typography, Slider, Button, Chip, Divider } from '@mui/material';
-import { KPICard, DeviceCard, HeatFlowDiagram } from '../components';
-import { generateMockHeatDevices, generateMockKPIs } from '../data/mockData';
-import { colors } from '../theme/theme';
+import { CollectorsPanel } from "../components/CollectorsPanel";
+import type { HeatCollectorState } from "../types";
+import { Settings2, Power, Fan } from "lucide-react";
+import { usePolling } from "../hooks/usePolling";
+import { toast } from "sonner";
+import { useAppContext } from "../contexts/AppContext";
 
-export const Heat: React.FC = () => {
-  const devices = generateMockHeatDevices();
-  const kpis = generateMockKPIs();
+export function HeatManagement() {
+  const { t } = useAppContext();
+  const { data: collectors } = usePolling<HeatCollectorState[]>(
+    "/api/collectors",
+    5000,
+    [],
+  );
 
-  const heatKPIs = [
-    kpis.find(k => k.label === '热量回收总量')!,
-    {
-      label: '热量利用率',
-      value: 85.3,
-      unit: '%',
-      trend: 0.3,
-      trendDirection: 'down' as const,
-      status: 'normal' as const,
-    },
-    kpis.find(k => k.label === '盐融堆存储')!,
-  ];
+  const handleConfigure = () => {
+    toast(t("Subsystem Configuration"), {
+      description: t("Opening advanced subsystem calibration tools."),
+    });
+  };
+
+  const handleAdjustParams = (name: string) => {
+    toast(t(`Adjusting`) + ` ${name}`, {
+      description: t("Calibrating heat transfer coefficients."),
+    });
+  };
 
   return (
-    <Box>
-      <Typography variant="h2" sx={{ mb: 3 }}>
-        热量管理 / 回收概览
-      </Typography>
+    <div className="p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 mx-auto w-full max-w-[1440px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-widest mb-2">
+            {t("Total Heat Recycled")}
+          </div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            1,600{" "}
+            <span className="text-sm text-[var(--text-muted)] font-medium">
+              kWh
+            </span>
+          </div>
+          <div className="text-emerald-400 text-xs font-semibold mt-2">
+            ↑ 12.5% /1h
+          </div>
+        </div>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-widest mb-2">
+            {t("Heat Utilization Rate")}
+          </div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            90.0{" "}
+            <span className="text-sm text-[var(--text-muted)] font-medium">
+              %
+            </span>
+          </div>
+          <div className="text-emerald-400 text-xs font-semibold mt-2">
+            ↑ 4.7% /1h
+          </div>
+        </div>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-widest mb-2">
+            {t("Silicon-Melt Storage")}
+          </div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            83.3{" "}
+            <span className="text-sm text-[var(--text-muted)] font-medium">
+              %
+            </span>
+          </div>
+          <div className="text-emerald-400 text-xs font-semibold mt-2">
+            ↑ 3.2% /1h
+          </div>
+        </div>
+      </div>
 
-      {/* KPI Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {heatKPIs.map((kpi, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <KPICard data={kpi} />
-          </Grid>
-        ))}
-      </Grid>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CollectorsPanel collectors={collectors} />
 
-      <Grid container spacing={3}>
-        {/* Left Column */}
-        <Grid item xs={12} lg={7}>
-          {/* Recovery Methods Proportion */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              三种方式回收占比
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, py: 3 }}>
-              {[
-                { name: '压缩机式', value: 46, amount: 850, color: colors.primary },
-                { name: '风冷+压缩', value: 31, amount: 580, color: colors.secondary },
-                { name: '发热片', value: 23, amount: 420, color: colors.warning },
-              ].map((item) => (
-                <Box key={item.name} sx={{ textAlign: 'center' }}>
-                  <Box
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: '50%',
-                      border: `8px solid ${item.color}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 1,
-                    }}
-                  >
-                    <Typography variant="h5" sx={{ fontWeight: 500 }}>
-                      {item.value}%
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {item.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                    {item.amount} kWh
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-
-          {/* Device Cards */}
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            设备实时状态
-          </Typography>
-          <Grid container spacing={2}>
-            {devices.map((device) => (
-              <Grid item xs={12} sm={6} md={6} key={device.id}>
-                <DeviceCard device={device} />
-              </Grid>
-            ))}
-          </Grid>
-        </Grid>
-
-        {/* Right Column */}
-        <Grid item xs={12} lg={5}>
-          {/* Heat Balance Table */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              热量平衡表
-            </Typography>
-
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" sx={{ color: colors.success, fontWeight: 500, mb: 1 }}>
-                热量收入
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {[
-                  { name: '电池充放电余热', amount: 2100 },
-                  { name: '弃风电力转热量', amount: 1200 },
-                  { name: '压缩机做功输入', amount: 700 },
-                ].map((item) => (
-                  <Box
-                    key={item.name}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      p: 1,
-                      bgcolor: colors.surfaceElevated,
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography variant="body2">{item.name}</Typography>
-                    <Typography variant="body2" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                      {item.amount} kWh
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" sx={{ color: colors.warning, fontWeight: 500, mb: 1 }}>
-                热量支出
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {[
-                  { name: '电池库供暖消耗', amount: 1680 },
-                  { name: '存储至盐融堆', amount: 1850 },
-                  { name: '系统损耗', amount: 320 },
-                ].map((item) => (
-                  <Box
-                    key={item.name}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      p: 1,
-                      bgcolor: colors.surfaceElevated,
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography variant="body2">{item.name}</Typography>
-                    <Typography variant="body2" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                      {item.amount} kWh
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                p: 2,
-                bgcolor: `${colors.success}20`,
-                borderRadius: 1,
-                border: `1px solid ${colors.success}`,
-              }}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+            <h3 className="font-semibold text-[var(--text-primary)]">
+              {t("Subsystem Details")}
+            </h3>
+            <span
+              onClick={handleConfigure}
+              className="text-[var(--accent-primary)] text-[11px] font-bold uppercase tracking-wider cursor-pointer hover:bg-[var(--bg-base)] p-1 rounded transition-colors"
             >
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                热量利用率
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 500, color: colors.success }}>
-                85.3%
-              </Typography>
-            </Box>
-          </Paper>
+              {t("Configure")}
+            </span>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="flex flex-col gap-4">
+              <div
+                onClick={() => handleAdjustParams(t("Compressor Array"))}
+                className="cursor-pointer hover:border-[var(--accent-primary)] transition-colors flex items-center gap-4 border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/5 p-4 rounded-xl"
+              >
+                <div className="p-3 bg-[var(--bg-card)] border border-[var(--accent-primary)]/20 rounded-lg shadow-sm">
+                  <Settings2 className="w-6 h-6 text-[var(--accent-primary)]" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-[var(--text-primary)] text-sm">
+                    {t("Compressor Array Alpha")}
+                  </h4>
+                  <p className="text-xs text-[var(--text-muted)] font-medium">
+                    {t("Active - Heat source from B-Block batteries")}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-[var(--text-primary)]">
+                    850{" "}
+                    <span className="text-xs font-medium text-[var(--text-muted)]">
+                      kWh
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          {/* Compressor Control Panel */}
-          <Paper sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                压缩机 #1 控制面板
-              </Typography>
-              <Chip label="运行中" size="small" sx={{ bgcolor: colors.success, color: 'white' }} />
-            </Box>
+              <div
+                onClick={() => handleAdjustParams(t("Heat Sheet"))}
+                className="cursor-pointer hover:border-amber-400 transition-colors flex items-center gap-4 border border-amber-400/30 bg-amber-400/5 p-4 rounded-xl"
+              >
+                <div className="p-3 bg-[var(--bg-card)] border border-amber-400/20 rounded-lg shadow-sm">
+                  <Power className="w-6 h-6 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-slate-900 text-sm">
+                    {t("Heat Sheet Contact Pad")}
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {t("Active - Direct contact recycling")}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-slate-900">
+                    420{" "}
+                    <span className="text-xs font-medium text-slate-500">
+                      kWh
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                当前状态: <strong>热量收集中 (COMPRESSING)</strong>
-              </Typography>
-            </Box>
-
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                转速调节 (0-100%)
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Slider
-                  value={75}
-                  sx={{ color: colors.primary }}
-                />
-                <Typography variant="body2" sx={{ minWidth: 50 }}>
-                  75%
-                </Typography>
-              </Box>
-              <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                1800 RPM
-              </Typography>
-            </Box>
-
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={6}>
-                <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                  COP
-                </Typography>
-                <Typography variant="h5" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                  3.2
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                  输入功率
-                </Typography>
-                <Typography variant="h5" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                  15.8 kW
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                  入口温度
-                </Typography>
-                <Typography variant="h5" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                  35.5°C
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" sx={{ color: colors.textSecondary }}>
-                  出口温度
-                </Typography>
-                <Typography variant="h5" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                  185.2°C
-                </Typography>
-              </Grid>
-            </Grid>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="outlined" size="small" sx={{ flex: 1 }}>
-                调整转速
-              </Button>
-              <Button variant="outlined" size="small" sx={{ flex: 1 }}>
-                切换模式
-              </Button>
-              <Button variant="contained" color="error" size="small" sx={{ flex: 1 }}>
-                紧急停机
-              </Button>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+              <div
+                onClick={() => handleAdjustParams(t("Forced Air Sync"))}
+                className="cursor-pointer hover:border-slate-400 transition-colors flex items-center gap-4 border border-slate-200 bg-slate-50/50 p-4 rounded-xl"
+              >
+                <div className="p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                  <Fan className="w-6 h-6 text-slate-500" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-slate-900 text-sm">
+                    {t("Forced Air Sync System")}
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {t("Standby Mode")}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-slate-900">
+                    580{" "}
+                    <span className="text-xs font-medium text-slate-500">
+                      kWh
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-};
+}

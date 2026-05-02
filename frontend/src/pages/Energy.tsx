@@ -1,125 +1,164 @@
-import React from 'react';
-import { Box, Grid, Paper, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { KPICard, EnergyChart } from '../components';
-import { generateMockKPIs } from '../data/mockData';
-import { colors } from '../theme/theme';
+import { EnergyChart } from "../components/EnergyChart";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
+import { useAppContext } from "../contexts/AppContext";
 
-export const Energy: React.FC = () => {
-  const kpis = generateMockKPIs();
-
-  const energyKPIs = [
-    { label: '风电发电量', value: 15230, unit: 'kWh', trend: 8.2, trendDirection: 'up' as const, status: 'normal' as const },
-    { label: '总用电量', value: 12450, unit: 'kWh', trend: 3.5, trendDirection: 'up' as const, status: 'normal' as const },
-    { label: '弃风量', value: 780, unit: 'kWh', trend: 15.2, trendDirection: 'down' as const, status: 'normal' as const },
-  ];
+export function EnergyManagement() {
+  const { t } = useAppContext();
+  const handleExport = () => {
+    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+      loading: t("Generating energy consumption report..."),
+      success: t("Report downloaded successfully") + " (energy_dist_2026.csv)",
+      error: t("Failed to generate report"),
+    });
+  };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h2">
-          能源管理 / 电力概览
-        </Typography>
-        <ToggleButtonGroup size="small">
-          <ToggleButton value="today">今日</ToggleButton>
-          <ToggleButton value="week">本周</ToggleButton>
-          <ToggleButton value="month">本月</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+    <div className="p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 mx-auto w-full max-w-[1440px]">
+      {/* Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <select className="px-4 py-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg text-sm font-semibold outline-none focus:border-[var(--accent-primary)] text-[var(--text-primary)]">
+            <option>{t("Today")}</option>
+            <option>{t("This Week")}</option>
+            <option>{t("This Month")}</option>
+          </select>
+          <select className="px-4 py-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg text-sm font-semibold outline-none focus:border-[var(--accent-primary)] text-[var(--text-primary)]">
+            <option>{t("All Regions")}</option>
+            <option>{t("Region A")}</option>
+            <option>{t("Region B")}</option>
+          </select>
+        </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/90 text-white rounded-lg text-sm font-semibold transition-colors"
+        >
+          <Download className="w-4 h-4" /> {t("Export Report")}
+        </button>
+      </div>
 
-      {/* Power Balance Diagram */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          电力平衡图
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 4, py: 2 }}>
-          {/* Wind Power Source */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Box
-              sx={{
-                bgcolor: `${colors.success}20`,
-                border: `2px solid ${colors.success}`,
-                borderRadius: 2,
-                p: 2,
-                minWidth: 100,
-              }}
-            >
-              <Typography variant="caption" sx={{ color: colors.success }}>风电</Typography>
-              <Typography variant="h5" sx={{ color: colors.success }}>15,230 kWh</Typography>
-            </Box>
-          </Box>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-widest mb-2">
+            {t("Wind Power generation")}
+          </div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            96,000{" "}
+            <span className="text-sm text-[var(--text-muted)] font-medium">
+              kWh
+            </span>
+          </div>
+          <div className="text-emerald-400 text-xs font-semibold mt-2">
+            ↑ 5.2% /1h
+          </div>
+        </div>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-widest mb-2">
+            {t("Total Load Consumption")}
+          </div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            70,000{" "}
+            <span className="text-sm text-[var(--text-muted)] font-medium">
+              kWh
+            </span>
+          </div>
+          <div className="text-emerald-400 text-xs font-semibold mt-2">
+            ↑ 2.1% /1h
+          </div>
+        </div>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+          <div className="text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-widest mb-2">
+            {t("Excess Power (Curtailed)")}
+          </div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            26,000{" "}
+            <span className="text-sm text-[var(--text-muted)] font-medium">
+              kWh
+            </span>
+          </div>
+          <div className="text-amber-400 text-xs font-semibold mt-2">
+            ↓ 1.5% /1h
+          </div>
+        </div>
+      </div>
 
-          {/* Arrow */}
-          <Box sx={{ display: 'flex', alignItems: 'center', pt: 3 }}>
-            <Typography variant="h4" sx={{ color: colors.textSecondary }}>→</Typography>
-          </Box>
+      {/* 24-Hour Energy Distribution Chart */}
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+        <EnergyChart />
+      </div>
 
-          {/* Distribution */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {[
-              { name: '电池库温控', amount: 4200, color: colors.primary },
-              { name: '储能充电', amount: 3500, color: colors.secondary },
-              { name: '居民用电', amount: 2800, color: colors.warning },
-              { name: '热量存储', amount: 1950, color: colors.heatHigh },
-            ].map((item) => (
-              <Box
-                key={item.name}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: item.color,
-                  }}
-                />
-                <Typography variant="body2" sx={{ minWidth: 80 }}>{item.name}</Typography>
-                <Typography variant="body2" sx={{ fontFamily: '"Roboto Mono", monospace' }}>
-                  {item.amount.toLocaleString()} kWh
-                </Typography>
-              </Box>
-            ))}
-          </Box>
+      {/* Energy Balance Analysis */}
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)] p-8">
+        <h3 className="font-semibold text-[var(--text-primary)] mb-6">
+          {t("Real-time Energy Flow Analysis")}
+        </h3>
 
-          {/* Arrow */}
-          <Box sx={{ display: 'flex', alignItems: 'center', pt: 3 }}>
-            <Typography variant="h4" sx={{ color: colors.textSecondary }}>→</Typography>
-          </Box>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div>
+            <h4 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">
+              {t("Input Sources")}
+            </h4>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-[var(--bg-base)] rounded-lg border border-[var(--border-subtle)]">
+                <span className="font-semibold text-[var(--text-secondary)]">
+                  {t("Battery Heat Recovery")}
+                </span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">
+                  2,100 kWh (52.5%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-[var(--bg-base)] rounded-lg border border-[var(--border-subtle)]">
+                <span className="font-semibold text-[var(--text-secondary)]">
+                  {t("Wind Power Curtailment")}
+                </span>
+                <span className="font-mono font-bold text-[var(--accent-primary)]">
+                  1,200 kWh (30.0%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-[var(--bg-base)] rounded-lg border border-[var(--border-subtle)]">
+                <span className="font-semibold text-[var(--text-secondary)]">
+                  {t("Compressor Subsystem Load")}
+                </span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">
+                  700 kWh (17.5%)
+                </span>
+              </div>
+            </div>
+          </div>
 
-          {/* Salt Storage */}
-          <Box
-            sx={{
-              textAlign: 'center',
-              bgcolor: `${colors.secondary}20`,
-              border: `2px solid ${colors.secondary}`,
-              borderRadius: 2,
-              p: 2,
-              minWidth: 100,
-            }}
-          >
-            <Typography variant="caption" sx={{ color: colors.secondary }}>盐融堆</Typography>
-            <Typography variant="h5" sx={{ color: colors.secondary }}>热量存储</Typography>
-          </Box>
-        </Box>
-      </Paper>
-
-      {/* KPI Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {energyKPIs.map((kpi, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <KPICard data={kpi} />
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Energy Chart */}
-      <Paper sx={{ p: 3 }}>
-        <EnergyChart height={320} />
-      </Paper>
-    </Box>
+          <div>
+            <h4 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">
+              {t("Output / Storage")}
+            </h4>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-red-400/10 rounded-lg border border-red-400/30">
+                <span className="font-semibold text-red-400">
+                  {t("Battery HVAC Matrix Load")}
+                </span>
+                <span className="font-mono font-bold text-red-400">
+                  1,680 kWh (45.7%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-emerald-400/10 rounded-lg border border-emerald-400/30">
+                <span className="font-semibold text-emerald-400">
+                  {t("Silicon-Melt Storage Transferred")}
+                </span>
+                <span className="font-mono font-bold text-emerald-400">
+                  1,850 kWh (50.3%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-[var(--bg-base)] rounded-lg border border-[var(--border-subtle)]">
+                <span className="font-semibold text-[var(--text-secondary)]">
+                  {t("System Path Loss")}
+                </span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">
+                  320 kWh (8.7%)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-};
+}

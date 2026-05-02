@@ -1,36 +1,34 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from './theme/theme';
-import { Layout } from './components/Layout';
-import {
-  Dashboard,
-  Temperature,
-  Energy,
-  Heat,
-  Alerts,
-  Display,
-} from './pages';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { AppProvider } from './contexts/AppContext';
+import { Layout } from './components/layout/Layout';
+import { Dashboard } from './pages/Dashboard';
+import { TemperatureMonitoring } from './pages/Temperature';
+import { EnergyManagement } from './pages/Energy';
+import { HeatManagement } from './pages/Heat';
+import { AlertCenter } from './pages/Alerts';
+import { UsersManagement } from './pages/Users';
+import { SystemSettings } from './pages/Settings';
+import { ResourceLibrary } from './pages/Library';
 
-const App: React.FC = () => {
+export default function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BrowserRouter>
+    <AppProvider>
+      <Router>
+        <Toaster position="top-right" richColors />
         <Routes>
-          <Route path="/display" element={<Display />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="temperature" element={<Temperature />} />
-            <Route path="energy" element={<Energy />} />
-            <Route path="heat" element={<Heat />} />
-            <Route path="alerts" element={<Alerts />} />
+            <Route path="temperature" element={<TemperatureMonitoring />} />
+            <Route path="energy" element={<EnergyManagement />} />
+            <Route path="heat" element={<HeatManagement />} />
+            <Route path="alerts" element={<AlertCenter />} />
+            <Route path="users" element={<UsersManagement />} />
+            <Route path="settings" element={<SystemSettings />} />
+            <Route path="library" element={<ResourceLibrary />} />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+      </Router>
+    </AppProvider>
   );
-};
-
-export default App;
+}
