@@ -1,25 +1,29 @@
 export function generateInitialData() {
   // Batteries
-  const batteries = [];
-  for (let i = 0; i < 60; i++) {
-    let temp = 20;
-    if (i === 12) temp = 45.2;
-    else if (i === 4) temp = 18.3;
-    else if (i === 5) temp = 23.1;
-    else temp = 18 + Math.random() * 6;
+  const batteries: any[] = [];
+  const zones = ["A", "B", "C", "D", "E"];
+  for (let z = 0; z < 5; z++) {
+    for (let i = 0; i < 100; i++) {
+      let temp = 20;
+      let rand = Math.random();
+      if (rand < 0.02) temp = 36 + Math.random() * 10;
+      else if (rand < 0.05) temp = 10 + Math.random() * 4;
+      else temp = 18 + Math.random() * 10;
 
-    let soc = 40 + Math.random() * 50;
+      let soc = 40 + Math.random() * 50;
 
-    batteries.push({
-      id: `BAT_${(i + 1).toString().padStart(3, "0")}`,
-      soc: soc,
-      temperatureC: temp,
-      status: temp > 35 ? "warning" : temp < 15 ? "warning" : "normal",
-    });
+      batteries.push({
+        id: `BAT_${zones[z]}_${(i + 1).toString().padStart(3, "0")}`,
+        zone: zones[z],
+        soc: soc,
+        temperatureC: temp,
+        status: temp > 35 ? "warning" : temp < 15 ? "warning" : "normal",
+      });
+    }
   }
 
   // Collectors (only heat_sheet and forced_air)
-  const collectors = [
+  const collectors: any[] = [
     {
       id: "heat_sheet_01",
       type: "heat_sheet",
@@ -28,17 +32,21 @@ export function generateInitialData() {
       currentPowerKw: 2.5,
       temperatureC: 52.8,
       heatCollectedKwh: 420,
-    },
-    {
-      id: "forced_air_01",
+    }
+  ];
+
+  zones.forEach((z) => {
+    collectors.push({
+      id: `forced_air_zone_${z}`,
       type: "forced_air",
+      zone: z,
       state: "STANDBY",
-      efficiency: 68.3,
+      efficiency: 68.3 + Math.random() * 5,
       currentPowerKw: 0,
       temperatureC: 28.5,
       heatCollectedKwh: 580,
-    },
-  ];
+    });
+  });
 
   // KPIs
   const kpis = [
@@ -67,10 +75,10 @@ export function generateInitialData() {
     },
     {
       title: "Est. Lifespan Extension",
-      value: "3.5",
+      value: "2.5",
       unit: "x",
       status: "normal",
-      description: "vs. baseline 1500→5250 cycles",
+      description: "vs. baseline 1500→3750 cycles",
     },
     {
       title: "Carbon Emission Reduction",

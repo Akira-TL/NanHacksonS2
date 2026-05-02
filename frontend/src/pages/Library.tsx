@@ -7,7 +7,7 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { useAppContext } from "../contexts/AppContext";
 

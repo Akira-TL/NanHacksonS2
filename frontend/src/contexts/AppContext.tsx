@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 type Locale = "en" | "zh";
 type Theme = "light" | "dark";
@@ -84,9 +84,33 @@ const translations: Translation = {
     en: "Active Heat Flow Matrix",
     zh: "活动热流矩阵",
   },
-  "Battery Matrix (Source)": {
-    en: "Battery Matrix (Source)",
-    zh: "电池库 (源点)",
+  "Battery Matrices": {
+    en: "Battery Matrices",
+    zh: "电池矩阵",
+  },
+  "Synergy Running": {
+    en: "Synergy Running",
+    zh: "协同运行中",
+  },
+  "Synergy Standby": {
+    en: "Synergy Standby",
+    zh: "协同待机",
+  },
+  "Air Cooling Compression Synergy": {
+    en: "Air Cooling Compression Synergy",
+    zh: "风冷压缩协同",
+  },
+  "Emergency Stop": {
+    en: "Emergency Stop",
+    zh: "紧急停止",
+  },
+  "Global Search": {
+    en: "Global Search",
+    zh: "全局搜索",
+  },
+  "Commit Changes": {
+    en: "Commit Changes",
+    zh: "提交更改",
   },
   "Compressor Path": { en: "Compressor Path", zh: "压缩机式" },
   "Heat Sheet": { en: "Heat Sheet", zh: "贴附发热片" },
@@ -116,6 +140,8 @@ const translations: Translation = {
   "Zone A": { en: "Zone A", zh: "A 区" },
   "Zone B": { en: "Zone B", zh: "B 区" },
   "Zone C": { en: "Zone C", zh: "C 区" },
+  "Zone D": { en: "Zone D", zh: "D 区" },
+  "Zone E": { en: "Zone E", zh: "E 区" },
   "All Statuses": { en: "All Statuses", zh: "全部状态" },
   Normal: { en: "Normal", zh: "正常" },
   Warning: { en: "Warning", zh: "告警" },
@@ -140,6 +166,12 @@ const translations: Translation = {
   "Active Battery Cells": { en: "Active Battery Cells", zh: "活跃电池群" },
   "View Details": { en: "View Details", zh: "查看详情" },
   "Cell Info": { en: "Cell Info", zh: "电池信息" },
+  Predicted: { en: "Predicted", zh: "预测" },
+  "Stop Unit": { en: "Stop Unit", zh: "停用单元" },
+  "Restart Unit": { en: "Restart Unit", zh: "重启单元" },
+  Offline: { en: "Offline", zh: "下线" },
+  offline: { en: "Offline", zh: "下线" },
+  "Salt Melt Heap": { en: "Salt Melt Heap", zh: "熔盐堆" },
   normal: { en: "Normal", zh: "正常" },
   "Adjust Target Mode": { en: "Adjust Target Mode", zh: "调整目标模式" },
   "Target adjustment via controls enabled.": {
@@ -218,7 +250,20 @@ const translations: Translation = {
       en: "Trigger forced air sync system immediately. Divert adjacent compressor loads to reduce ambient heat matrix.",
       zh: "立即触发强制风冷同步系统。转移相邻压缩机负载以降低环境热矩阵。",
     },
+  "Maintenance Halt": { en: "Maintenance Halt", zh: "维保停机" },
+  "Unit successfully stop/decommissioned": { en: "Unit successfully stop/decommissioned", zh: "单元已成功停机/退役" },
   "Acknowledge Alert": { en: "Acknowledge Alert", zh: "确认告警" },
+  "Joint System Health": { en: "Joint System Health", zh: "系统综合健康度" },
+  "Joint Control Matrix": { en: "Joint Control Matrix", zh: "联合控制矩阵" },
+  "Battery Cluster Isolation": { en: "Battery Cluster Isolation", zh: "电池群解裂隔离" },
+  "HVAC Duty Cycle Sync": { en: "HVAC Duty Cycle Sync", zh: "空调系统占空比同步" },
+  "Salt Melt Diverter": { en: "Salt Melt Diverter", zh: "熔盐分流切换" },
+  "Emergency Heat Vent": { en: "Emergency Heat Vent", zh: "紧急热量排放" },
+  Auto: { en: "Auto", zh: "自动" },
+  Active: { en: "Active", zh: "激活" },
+  Manual: { en: "Manual", zh: "手动" },
+  Standby: { en: "Standby", zh: "待机" },
+  "AI Optimization": { en: "AI Optimization", zh: "AI 优化" },
   // Users Page
   "Manage platform access, roles, and security policies.": {
     en: "Manage platform access, roles, and security policies.",
@@ -234,8 +279,6 @@ const translations: Translation = {
   Email: { en: "Email", zh: "邮箱" },
   Cancel: { en: "Cancel", zh: "取消" },
   Confirm: { en: "Confirm", zh: "确认" },
-  Active: { en: "Active", zh: "活跃" },
-  Offline: { en: "Offline", zh: "离线" },
   Admin: { en: "Admin", zh: "管理员" },
   Operator: { en: "Operator", zh: "操作员" },
   Viewer: { en: "Viewer", zh: "查看者" },
@@ -364,7 +407,6 @@ const translations: Translation = {
   // Standby
   "Standby Mode": { en: "Standby Mode", zh: "待机模式" },
   // Subsystem names - remove duplicates
-  "Active Battery Cells": { en: "Active Battery Cells", zh: "活跃电池群" },
   "Report downloaded successfully": {
     en: "Report downloaded successfully",
     zh: "报告下载成功",

@@ -7,9 +7,7 @@ import { TemperatureMonitoring } from './pages/Temperature';
 import { EnergyManagement } from './pages/Energy';
 import { HeatManagement } from './pages/Heat';
 import { AlertCenter } from './pages/Alerts';
-import { UsersManagement } from './pages/Users';
 import { SystemSettings } from './pages/Settings';
-import { ResourceLibrary } from './pages/Library';
 
 export default function App() {
   return (
@@ -23,9 +21,7 @@ export default function App() {
             <Route path="energy" element={<EnergyManagement />} />
             <Route path="heat" element={<HeatManagement />} />
             <Route path="alerts" element={<AlertCenter />} />
-            <Route path="users" element={<UsersManagement />} />
             <Route path="settings" element={<SystemSettings />} />
-            <Route path="library" element={<ResourceLibrary />} />
           </Route>
         </Routes>
       </Router>

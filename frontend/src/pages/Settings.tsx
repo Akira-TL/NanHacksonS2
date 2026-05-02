@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAppContext } from "../contexts/AppContext";
+import { motion } from "motion/react";
 
 export function SystemSettings() {
   const { t } = useAppContext();
@@ -29,7 +30,13 @@ export function SystemSettings() {
   };
 
   return (
-    <div className="p-6 lg:p-8 flex flex-col gap-6 mx-auto w-full max-w-[1440px]">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="p-6 lg:p-8 flex flex-col gap-6 mx-auto w-full max-w-[1440px]"
+    >
       <div className="flex justify-between items-center bg-[var(--bg-card)] p-6 rounded-xl border border-[var(--border-subtle)] shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-primary)]">
@@ -189,6 +196,6 @@ export function SystemSettings() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

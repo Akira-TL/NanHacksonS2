@@ -42,7 +42,7 @@ export function Header() {
     });
   };
 
-  const pageTitle = t(routeNames[location.pathname] || "HEATSYS Core");
+  const pageTitle = t(routeNames[location.pathname] || "EnergyLoop Core");
 
   return (
     <header className="h-14 bg-[#121212] border-b border-[#2D2D2D] flex items-center justify-between px-6 shrink-0 sticky top-0 z-50">
@@ -51,27 +51,6 @@ export function Header() {
         <h1 className="text-lg font-bold tracking-widest text-white uppercase">
           {pageTitle}
         </h1>
-
-        <nav className="hidden md:flex gap-6 h-full items-center">
-          <a
-            className="text-[#1976D2] border-b-2 border-[#1976D2] px-3 py-1 cursor-pointer"
-            href="#"
-          >
-            {t("Dashboard")}
-          </a>
-          <a
-            className="text-gray-400 hover:bg-[#2D2D2D] transition-colors px-3 py-1 cursor-pointer"
-            href="#"
-          >
-            {t("Settings")}
-          </a>
-          <a
-            className="text-gray-400 hover:bg-[#2D2D2D] transition-colors px-3 py-1 cursor-pointer"
-            href="#"
-          >
-            {t("Logs")}
-          </a>
-        </nav>
       </div>
 
       {/* Right section */}

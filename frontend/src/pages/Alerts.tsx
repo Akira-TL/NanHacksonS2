@@ -12,6 +12,7 @@ import { useState } from "react";
 import { usePolling } from "../hooks/usePolling";
 import { toast } from "sonner";
 import { useAppContext } from "../contexts/AppContext";
+import { motion, AnimatePresence } from "motion/react";
 
 export function AlertCenter() {
   const { t } = useAppContext();
@@ -73,7 +74,13 @@ export function AlertCenter() {
   };
 
   return (
-    <div className="p-6 lg:p-8 flex flex-col gap-6 mx-auto w-full max-w-[1440px]">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="p-6 lg:p-8 flex flex-col gap-6 mx-auto w-full max-w-[1440px]"
+    >
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
@@ -114,9 +121,12 @@ export function AlertCenter() {
             color: "text-[var(--text-muted)]",
             bg: "bg-[var(--bg-base)]",
           },
-        ].map((s) => (
-          <div
+        ].map((s, i) => (
+          <motion.div
             key={s.label}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 + i * 0.05 }}
             className={cn(
               "rounded-xl p-4 flex items-center justify-between border",
               s.bg,
@@ -130,7 +140,7 @@ export function AlertCenter() {
               <div className={cn("text-2xl font-bold", s.color)}>{s.value}</div>
             </div>
             <s.icon className={cn("w-8 h-8 opacity-50", s.color)} />
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -162,10 +172,15 @@ export function AlertCenter() {
                 <th className="px-6 py-3 text-right">{t("Event Profile")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-card)]">
-              {alerts.map((a) => (
-                <tr
+            <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-card)] relative">
+              <AnimatePresence>
+              {alerts.map((a, i) => (
+                <motion.tr
                   key={a.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.05 }}
                   onClick={() => setSelectedAlertId(a.id)}
                   className={cn(
                     "cursor-pointer transition-colors",
@@ -206,35 +221,41 @@ export function AlertCenter() {
                       {t(a.status)}
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
 
         {/* Alert Detail Pane */}
         {selectedAlert ? (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex flex-col">
-            <div className="p-6 border-b border-rose-200">
+          <motion.div
+            key={selectedAlert.id}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-[#1E1E1E] border border-red-500/30 rounded-xl overflow-hidden shadow-lg flex flex-col"
+          >
+            <div className="p-6 border-b border-red-500/20 bg-red-500/5">
               <div className="flex items-center gap-3 mb-4">
-                <Siren className="w-6 h-6 text-rose-600" />
-                <h3 className="text-lg font-bold text-rose-900 leading-tight">
+                <Siren className="w-6 h-6 text-red-400" />
+                <h3 className="text-lg font-bold text-white leading-tight">
                   {t(selectedAlert.title)}
                 </h3>
               </div>
               <div className="flex flex-wrap gap-2 text-xs font-mono font-medium">
-                <span className="px-2 py-1 bg-[var(--bg-card)] rounded border border-red-800/40 text-red-400">
+                <span className="px-2 py-1 bg-[#0A0A0A] rounded border border-[#2D2D2D] text-gray-400">
                   ID: {selectedAlert.id}
                 </span>
-                <span className="px-2 py-1 bg-[var(--bg-card)] rounded border border-red-800/40 text-red-400">
+                <span className="px-2 py-1 bg-[#0A0A0A] rounded border border-[#2D2D2D] text-gray-400">
                   SRC: {selectedAlert.source}
                 </span>
                 <span
                   className={cn(
-                    "px-2 py-1 bg-[var(--bg-card)] rounded border font-bold uppercase",
+                    "px-2 py-1 bg-[#0A0A0A] rounded border font-bold uppercase",
                     selectedAlert.status === "Acknowledged"
-                      ? "border-emerald-800/40 text-emerald-400"
-                      : "border-red-800/40 text-red-400",
+                      ? "border-emerald-500/30 text-emerald-400"
+                      : "border-red-500/30 text-red-400",
                   )}
                 >
                   {t(selectedAlert.status)}
@@ -242,38 +263,57 @@ export function AlertCenter() {
               </div>
             </div>
 
-            <div className="p-6 bg-[var(--bg-card)] flex-1 space-y-6">
+            <div className="p-6 bg-[#121212] flex-1 space-y-6">
               <div>
-                <h4 className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">
+                <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">
                   {t("Suggested Action")}
                 </h4>
-                <p className="text-sm text-[var(--text-secondary)] font-medium">
+                <p className="text-sm text-gray-300 font-medium">
                   {t(
                     "Trigger forced air sync system immediately. Divert adjacent compressor loads to reduce ambient heat matrix.",
                   )}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
+              <div className="pt-4 border-t border-[#2D2D2D] flex flex-col gap-3">
                 {selectedAlert.status !== "Acknowledged" && (
                   <button
                     onClick={handleAcknowledge}
-                    className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg transition-colors"
+                    className="w-full py-2.5 bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 text-red-400 font-bold tracking-wider uppercase rounded-lg transition-colors text-xs"
                   >
                     {t("Acknowledge Alert")}
                   </button>
                 )}
                 <div className="flex gap-3">
+                  {selectedAlert.unitId && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await fetch(`/api/batteries/${selectedAlert.unitId}/control`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "decommission" }),
+                          });
+                          toast.success(t("Unit successfully stop/decommissioned"));
+                        } catch (err) {
+                           console.error(err);
+                        }
+                      }}
+                      className="flex-1 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-amber-500/20 transition-colors"
+                    >
+                      {t("Maintenance Halt")}
+                    </button>
+                  )}
                   <button
                     onClick={handleCreateTicket}
-                    className="flex-1 py-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-semibold rounded-lg hover:bg-[var(--border-subtle)] transition-colors"
+                    className="flex-1 py-2 bg-[#1E1E1E] border border-[#2D2D2D] text-gray-300 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-[#2D2D2D] transition-colors"
                   >
                     {t("Create Ticket")}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         ) : (
           <div className="bg-[var(--bg-card)] border text-center border-[var(--border-subtle)] rounded-xl p-12 flex flex-col items-center justify-center text-[var(--text-muted)] h-full">
             <CheckCircle2 className="w-12 h-12 mb-4 text-emerald-200" />
@@ -285,6 +325,6 @@ export function AlertCenter() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

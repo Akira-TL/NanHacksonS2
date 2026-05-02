@@ -1,5 +1,5 @@
 {
-  "name": "垃圾电/热能回收管理平台",
+  "name": "EnergyLoop",
   "description": "基于硅基发热片和压缩热泵的三重热回收闭环系统监控面板，旨在消除风电丢弃与提升电池寿命。",
   "requestFramePermissions": [],
   "majorCapabilities": []

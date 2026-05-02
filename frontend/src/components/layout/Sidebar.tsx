@@ -23,15 +23,13 @@ export function Sidebar() {
   ];
 
   const systemItems = [
-    { name: t('User Management'), path: '/users', icon: Users },
     { name: t('System Settings'), path: '/settings', icon: Settings },
-    { name: t('Resource Library'), path: '/library', icon: BookOpen },
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 flex flex-col z-40 bg-[#1E1E1E] border-r border-[#2D2D2D] shadow-lg shadow-black/50">
+    <aside className="shrink-0 w-64 flex flex-col z-40 bg-[#1E1E1E] border-r border-[#2D2D2D] shadow-lg shadow-black/50 h-screen">
       <div className="px-6 py-4 border-b border-[#2D2D2D]">
-        <h2 className="text-[#cfbcff] font-black text-sm tracking-tighter">HEATSYS</h2>
+        <h2 className="text-[#cfbcff] font-black text-sm tracking-tighter uppercase">EnergyLoop</h2>
         <p className="text-[10px] text-gray-500 uppercase font-medium">Node 04 - Active</p>
       </div>
 

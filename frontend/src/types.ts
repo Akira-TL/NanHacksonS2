@@ -21,9 +21,10 @@ export interface HeatCollectorState {
 
 export interface BatteryUnit {
   id: string;
+  zone: string;
   soc: number; // State of Charge
   temperatureC: number;
-  status: 'normal' | 'heating' | 'cooling' | 'warning';
+  status: "normal" | "heating" | "cooling" | "warning" | "offline";
 }
 
 export interface SystemOverview {

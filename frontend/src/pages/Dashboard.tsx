@@ -9,15 +9,15 @@ import type { BatteryUnit, HeatCollectorState, KPI } from "../types";
 export function Dashboard() {
   const { data: batteries } = usePolling<BatteryUnit[]>(
     "/api/batteries",
-    3000,
+    2000,
     [],
   );
   const { data: collectors } = usePolling<HeatCollectorState[]>(
     "/api/collectors",
-    5000,
+    2000,
     [],
   );
-  const { data: kpis } = usePolling<KPI[]>("/api/overview", 5000, []);
+  const { data: kpis } = usePolling<KPI[]>("/api/overview", 2000, []);
 
   return (
     <div className="p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 mx-auto w-full max-w-[1440px]">
