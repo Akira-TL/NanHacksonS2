@@ -1,0 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* Stitch Design System - Dark Industrial Theme */
+:root {
+    /* Core palette */
+    --bg-base: #121212;
+    --bg-card: #1E1E1E;
+    --border-subtle: #2D2D2D;
+    --border-active: #3D3D3D;
+    --accent-primary: #1976D2;
+    --accent-primary-hover: #0D47A1;
+
+    /* Status colors */
+    --status-online: #4CAF50;
+    --status-warning: #FF9800;
+    --status-error: #F44336;
+    --status-offline: #616161;
+
+    /* Text hierarchy */
+    --text-primary: #FFFFFF;
+    --text-secondary: #E6E0E9;
+    --text-muted: #948E9C;
+    --text-disabled: #494551;
+}
+
+body {
+    @apply font-sans antialiased tracking-tight;
+    margin: 0;
+    height: 100vh;
+    overflow-x: hidden;
+    background-color: var(--bg-base);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+}
+
+/* Custom Scrollbar - Dark Theme */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-active);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
+}
+
+/* Material Symbols Outlined base style */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Data font for numerical values */
+.data-font {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Technical Dashboard Grid Layout Utilities */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.5rem;
+    overflow: visible;
+}
+
+/* Hardware-style Panel - Dark Theme */
+.tech-panel {
+    @apply rounded overflow-hidden shadow-xl;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+}
+
+.tech-header {
+    @apply px-6 py-4 border-b flex items-center justify-between text-sm font-bold uppercase tracking-widest;
+    background-color: var(--bg-base);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.tech-value {
+    @apply text-3xl font-bold tracking-tight;
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.tech-label {
+    @apply text-xs font-bold uppercase tracking-widest;
+    color: var(--text-muted);
+}
+
+/* Bento Grid for complex layouts */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.bento-item {
+    @apply rounded p-4;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+}
+
+/* Status Indicators */
+.status-dot {
+    @apply rounded-full;
+    width: 8px;
+    height: 8px;
+}
+
+.status-dot.online {
+    background-color: var(--status-online);
+}
+
+.status-dot.warning {
+    background-color: var(--status-warning);
+    animation: pulse 2s infinite;
+}
+
+.status-dot.error {
+    background-color: var(--status-error);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Tab styles */
+.tab-active {
+    @apply border-b-2;
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    background-color: var(--bg-card);
+}
+
+.tab-inactive {
+    @apply text-gray-500;
+    background-color: var(--bg-base);
+}
+
+.tab-inactive:hover {
+    @apply text-gray-300;
+    background-color: var(--border-subtle);
+}
+
+/* Button styles */
+.btn-primary {
+    @apply px-4 py-2 text-xs font-bold uppercase tracking-widest rounded transition-colors;
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-primary-hover);
+}
+
+.btn-secondary {
+    @apply px-4 py-2 text-xs font-bold uppercase tracking-widest rounded transition-colors;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--border-subtle);
+}
+
+.btn-danger {
+    @apply px-4 py-2 text-xs font-bold uppercase tracking-widest rounded transition-colors flex items-center justify-center gap-2;
+    background-color: #93000A;
+    color: #FFB4AB;
+    border: 1px solid var(--status-error);
+}
+
+.btn-danger:hover {
+    background-color: var(--status-error);
+    color: white;
+}
+
+/* Badge/Pill styles */
+.badge {
+    @apply px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded;
+    background-color: var(--border-subtle);
+    border: 1px solid var(--border-active);
+    color: var(--text-muted);
+}
+
+.badge-primary {
+    background-color: rgba(25, 118, 210, 0.2);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
