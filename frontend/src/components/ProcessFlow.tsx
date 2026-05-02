@@ -7,12 +7,20 @@ import type { BatteryUnit } from "../types";
 
 export function ProcessFlow() {
   const { t } = useAppContext();
-  const { data: batteries } = usePolling<BatteryUnit[]>('/api/batteries', 3000, []);
+  const { data: batteries } = usePolling<BatteryUnit[]>(
+    "/api/batteries",
+    3000,
+    [],
+  );
 
   // Calculate average temperature
-  const avgTemp = batteries.length > 0
-    ? (batteries.reduce((sum, b) => sum + b.temperatureC, 0) / batteries.length).toFixed(1)
-    : "0.0";
+  const avgTemp =
+    batteries.length > 0
+      ? (
+          batteries.reduce((sum, b) => sum + b.temperatureC, 0) /
+          batteries.length
+        ).toFixed(1)
+      : "0.0";
 
   return (
     <div className="bg-[#1E1E1E] border border-[#2D2D2D] rounded-xl col-span-12 lg:col-span-8 p-6 flex flex-col justify-center min-h-[300px]">
